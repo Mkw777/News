@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{%block title%}Super News {%endblock%}</title>
+    {% block additional_links%}
+    {%endblock%}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Sedgwick+Ave" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'feed/css/style.css' %}" />
+</head>
+<body style="background-color: #2E383F;" class="white-text">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        var regForm = $('#registration-form');
+        var authForm = $('#authorization-form')
+        var regBtn = $('#reg-btn');
+        $(regForm).hide();
+        $(authForm).hide();
+
+        function showRegistrationForm() {
+            $(regForm).fadeIn();
+            $(regBtn).addClass('disabled');
+        }
+
+        function hideRegistrationForm() {
+            $(regForm).fadeOut();
+            $(regBtn).removeClass('disabled');
+        }
+
+        function showAuthForm() {
+            $(authForm).fadeIn();
+            $(regBtn).addClass('disabled');
+        }
+
+        function hideAuthForm() {
+            $(authForm).fadeOut();
+            $(regBtn).removeClass('disabled');
+        }
+
+        $('#reg').on('click', function (e) {
+            e.preventDefault();
+            showRegistrationForm();
+        });
+
+        $('#auth').on('click', function (e) {
+            e.preventDefault();
+            showAuthForm();
+        });
+
+        $(document).mousedown(function (e) {
+        var container = $(".card");
+        if (!container.is(e.target) // если клик был не по нашему блоку
+            && container.has(e.target).length === 0) { // и не по его дочерним элементам
+            hideRegistrationForm();
+            hideAuthForm();
+        }
+    });
+        function register(){
+            var url = '/login/register';
+            var login = $('#login').val();
+            if (login.length == 0){
+                Materialize.toast('Введите имя пользователя', 4000);
+                return;
+            }
+
+            var email = $('#email').val();
+            if (email.length == 0){
+                Materialize.toast('Введите Email', 4000);
+                return;
+            }
+
+            var password = $('#password').val();
+            if (password.length == 0){
+                Materialize.toast('Введите пароль', 4000);
+                return;
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data:{
+                    username: login,
+                    email: email,
+                    password: password,
+                    csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                },
+                success:function () {
+                    location.reload();
+                }
+            })
+        }
+        function auth(){
+            var url = '/login/auth';
+            var login = $('#login_auth').val();
+            if (login.length == 0){
+                Materialize.toast('Введите имя пользователя', 4000);
+                return;
+            }
+
+            var password = $('#password_auth').val();
+            if (password.length == 0){
+                Materialize.toast('Введите пароль', 4000);
+                return;
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data:{
+                    username: login,
+                    password: password,
+                    csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                },
+                success:function () {
+                    alert("Авторизован!");
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert("Не получилось!");
+                 }
+            })
+        }
+
+        $('#register').on('click', function (e) {
+            e.preventDefault();
+            register();
+        });
+
+        $('#login_btn').on('click', function (e) {
+        e.preventDefault();
+        auth();
+    });
+    })
+</script>
+    {% block additional_scripts%}
+    {%endblock%}
+
+    {%block header%}
+        {% include 'feed/header_nav.html' with categories=categories %}
+    {%endblock%}
+
+    <div class="row">
+        <div class="col m3">
+            {% block left_panel %}
+            {% endblock %}
+        </div>
+        <div class="col m6">
+            <main class="container">
+                {% block main %}
+                {% endblock %}
+            </main>
+        </div>
+        <div class="col m3">
+            {% block right_panel %}
+            {% endblock %}
+        </div>
+    </div>
+
+    {%block footer%}
+        {% include 'feed/footer.html'%}
+    {%endblock%}
+    <div id="registration-form" style=" width:100%; min-height:100%;
+            overflow:visible;
+            position:fixed;
+            top:0;
+            background-color: rgba(207,216,220,0.7);">
+
+        <div class="row">
+            <div class="col s4 offset-s4" style="top:20%; position:fixed;">
+                <div class="card z-depth-2" style="background-color: #2E383F;">
+                    <div class="card-header  blue darken-1">
+                        <div class="card-title">
+                            <nav>
+                                <div class="nav-wrapper  blue darken-1">
+                                    <div class="col s12" style="padding-left:30px">
+                                        <a class="breadcrumb  blue darken-1 center-align">Регистрация</a>
+                                    </div>
+                                </div>
+                            </nav>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class = 'row'>
+                            <a href="{% url 'social:begin' 'vk-oauth2' %}?next={{ request.path }}">
+                                <button class="waves-effect waves-light btn col s10 offset-s1 blue darken-1" >
+                                    Регистрация через Вконтакте
+                                </button>
+                            </a>
+                        </div>
+                        <hr>
+                        <form method="POST" id="registration_form">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="input-field col 12 m12 s12">
+                                    <input autocomplete="off" id="login" type="text" class="validate">
+                                    <label class="active" for="login">Логин</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="input-field col 12 m12 s12">
+                                    <input autocomplete="off" id="email" type="text" class="validate">
+                                    <label class="active" for="email">Email</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="input-field col 12 m12 s12">
+                                    <input autocomplete="off" id="password" type="password" class="validate">
+                                    <label for="password">Пароль</label>
+                                </div>
+                            </div>
+                        </form>
+                        <div class = 'row'>
+
+                            <button class="waves-effect waves-light btn col s10 offset-s1  blue darken-1" id="register">
+                                Регистрация
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="authorization-form" style=" width:100%; min-height:100%;
+            overflow:hidden;
+            position:fixed;
+            top:0;
+            background-color: rgba(207,216,220,0.7);">
+        <div class="row">
+            <div class="col s4 offset-s4" style="top:20%; position:fixed;">
+                <div class="card z-depth-2">
+                    <div class="card-header" >
+                        <div class="card-title">
+                            <nav>
+                                <div class="nav-wrapper " style="background-color: #0A122A">
+                                    <div class="col s12" style="padding-left:30px">
+                                        <a class="breadcrumb center-align" style="background-color: #0A122A">Авторизация</a>
+                                    </div>
+                                </div>
+                            </nav>
+                        </div>
+                    </div>
+                    <div class="card-content" style="background-color:  #2E383F;">
+                        <div class = 'row'>
+                            <a href="{% url 'social:begin' 'vk-oauth2' %}?next={{ request.path }}">
+                                <button class="waves-effect waves-light btn col s10 offset-s1 " style="background-color: #0A122A">
+                                    Авторизация через Вконтакте
+                                </button>
+                            </a>
+                        </div>
+
+                        <hr>
+                        <form method="POST" id="login_form">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="input-field col 12 m12 s12">
+                                    <input autocomplete="off" id="login_auth" type="text" class="validate">
+                                    <label class="active" for="login_auth">Логин</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="input-field col 12 m12 s12">
+                                    <input autocomplete="off" id="password_auth" type="password" class="validate">
+                                    <label for="password_auth">Пароль</label>
+                                </div>
+                            </div>
+                        </form>
+                        <div class = 'row'>
+                            <button class="waves-effect waves-light btn col s10 offset-s1 " style="background-color: #0A122A" id="login_btn">
+                                Вход
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

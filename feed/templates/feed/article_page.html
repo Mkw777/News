@@ -1,0 +1,121 @@
+{%extends "feed/base_view.html"%}
+{%block title%} NEWS {%endblock%}
+
+{% block left_panel %}
+    <p class="flow-text">По материалам портала: <a href="{{article.source.url}}">{{article.source}}</a></p>
+    <div class="divider"></div>
+    <p class="flow-text">Тэги: </p>
+    {% for tag in article.tags.all%}
+    <div class="chip" style="background-color: #0A122A">
+        <a href="{% url 'view_tag' pk=tag.pk %}">{{tag}} {{ tag.count }}</a>
+  </div>
+    {%endfor%}
+<div class="divider"></div>
+<div class="row">
+    <form method="post" class="col s12">
+        {% csrf_token %}
+      <div class="row">
+          <div class="row">
+        <div class="input-field col s12">
+          <input id="author" type="text" class="validate">
+          <label for="author">Author</label>
+        </div>
+        </div>
+      </div>
+        <div class="input-field col s12">
+          <textarea id="comment" class="materialize-textarea"></textarea>
+          <label for="comment">Comment</label>
+        </div>
+      <button class="btn waves-effect waves-light" type="submit" name="action" id ="submit_comment" style="background-color: #0A122A">Submit
+    <i class="material-icons right">send</i>
+  </button>
+ <button class="btn waves-effect waves-light" type="submit" name="action" id ="like" style="background-color: #0A122A">Like
+    <i class="material-icons right">favorite</i>
+     <likes>{{ article.likes_count}}</likes>
+  </button>
+    </form>
+  </div>
+
+<script>
+    $(document).ready(function () {
+
+        $("#submit_comment").on('click', function () {
+            event.preventDefault();
+            var author = $('#author').val();
+            var comment = $('#comment').val();
+            if (comment && author){
+                $.ajax({
+                    type: 'POST',
+                    url: '/comment/add',
+                    data:{
+                        author:author,
+                        comment:comment,
+                        article:$('#article_header').attr("article_id"),
+                        csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                    },
+                    success:function(contact_json) {
+                        Materialize.toast('Комментарий добавлен', 4000);
+                        $('#author').val("");
+                        $('#comment').val("");
+                        $('#comments').append('<div class="row"> <div class="col s12"> <div class="card" style="background-color: #0A122A;"> <div class="card-content white-text"> <span class="card-title">'
+                        + author + '</span> <p>'
+                        + comment + '</p> </div><div class="card-action"> <a href="#"style="color: #00E9FF;">Response</a><a href="#"style="color: #00E9FF;">Like</a> </div> </div> </div> </div>');
+
+                    },
+                    error: function () {
+                        Materialize.toast('Комментарий не добавлен', 4000);
+                    }
+                });
+            } else
+            {
+                Materialize.toast('Поля не должны быть пустыми.', 4000);
+            }
+        })
+        $("#like").on('click', function () {
+            event.preventDefault();
+                $.ajax({
+                    type: 'POST',
+                    url: '/like/like',
+                    data:{
+                        article:$('#article_header').attr("article_id"),
+                        csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                    },
+                    success:function(contact_json) {
+                        var likes_count = 1 + parseInt($('likes').text())
+                        $('likes').text(likes_count)
+                    },
+                    error: function () {
+                        Materialize.toast('Ошибка', 4000);
+                    }
+                });
+        })
+    })
+</script>
+{%endblock %}
+
+{%block main%}
+<h2 id="article_header" article_id="{{article.pk}}">{{article.title}}</h2>
+<img class="responsive-img" src="{{article.article_images.first.url}}">
+   {% autoescape off %} {{article.text}}{% endautoescape %}
+{%endblock%}
+
+{% block right_panel %}
+<div id="comments">
+{%for comment in article.comments.all%}
+<div class="row">
+    <div class="col s12">
+      <div class="card" style="background-color: #0A122A;">
+        <div class="card-content white-text">
+          <span class="card-title">{{comment.author}}</span>
+          <p>{{comment.comment}}</p>
+        </div>
+        <div class="card-action">
+          <a href="#" style="color: #00E9FF;">Response</a>
+          <a href="#" style="color: #00E9FF;">Like</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{%endfor%}
+    </div>
+{% endblock %}

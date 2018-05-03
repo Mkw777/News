@@ -1,0 +1,14 @@
+    <header>
+        <nav style="background-color: #0A122A !important; color: #00E9FF">
+            <div class="nav-wrapper">
+                <a href="{% url 'view_all' %}" class="brand-logo" style="margin-left: 30px; color: #00E9FF" >Super news</a>
+                <ul id="nav-mobile" class="right hide-on-med-and-down" style="margin-right: 30px">
+                    {% for category in categories%}
+                    <li {%if category.is_active %} class="active" {%endif%}><a href="{% url 'view_category' pk=category.pk %}" style= "color: #00E9FF">{{category.name}}</a></li>
+                    {% endfor %}
+                    <li><a href="" style= "color: #00E9FF" id="auth">Sign in</a></li>
+                    <li><a href="" style= "color: #00E9FF" id="reg">Sign up</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>

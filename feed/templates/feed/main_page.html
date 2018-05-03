@@ -1,0 +1,27 @@
+{%extends "feed/base_view.html"%}
+{%block title%} NEWS {%endblock%}
+
+{% block left_panel %}
+
+	<div class="input-field row">
+		<div class="col s12">
+			<input id="icon_prefix" type="text" class="validate">
+			<label for="icon_prefix"><i class="material-icons">search_circle</i></label>
+		</div>
+	</div>
+	<ul class="collection" style="border-color: #3D348B">
+		{% for source in sources %}
+		<li class="collection-item" style="background-color: #0A122A; border-color: #3D348B">
+			<input type="checkbox" id="sourse_{{source.pk}}" checked="checked" class="checkbox-indigo"/>
+			<label for="sourse_{{source.pk}}">{{source.name}}</label>
+		</li>
+		{% endfor %}
+	</ul>
+	<a class="waves-effect waves-purple btn-flat">Применить</a>
+{%endblock %}
+
+{%block main%}
+{%for article in articles%}
+	{% include "feed/article_preview.html" with article=article %}
+{%endfor%}
+{%endblock%}
