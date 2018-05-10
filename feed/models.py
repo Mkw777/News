@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib import admin
-
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -47,7 +47,7 @@ class News(models.Model):
 
 
 class Like(models.Model):
-    owner = models.TextField()
+    owner = models.ForeignKey(User, related_name="user_likes", on_delete=models.CASCADE)
     article = models.ForeignKey(News, related_name="likes", on_delete=models.CASCADE)
 
 
@@ -58,7 +58,7 @@ class Image(models.Model):
 
 class Comment(models.Model):
     article = models.ForeignKey(News, related_name="comments", on_delete=models.CASCADE)
-    author = models.TextField(max_length=20, default="")
+    author = models.ForeignKey(User, related_name="user_comments", on_delete=models.CASCADE)
     comment = models.TextField(max_length=1500, default="")
 
 

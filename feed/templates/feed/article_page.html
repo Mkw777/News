@@ -14,14 +14,6 @@
 <div class="row">
     <form method="post" class="col s12">
         {% csrf_token %}
-      <div class="row">
-          <div class="row">
-        <div class="input-field col s12">
-          <input id="author" type="text" class="validate">
-          <label for="author">Author</label>
-        </div>
-        </div>
-      </div>
         <div class="input-field col s12">
           <textarea id="comment" class="materialize-textarea"></textarea>
           <label for="comment">Comment</label>
@@ -41,24 +33,21 @@
 
         $("#submit_comment").on('click', function () {
             event.preventDefault();
-            var author = $('#author').val();
             var comment = $('#comment').val();
-            if (comment && author){
+            if (comment){
                 $.ajax({
                     type: 'POST',
                     url: '/comment/add',
                     data:{
-                        author:author,
                         comment:comment,
                         article:$('#article_header').attr("article_id"),
                         csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
                     },
                     success:function(contact_json) {
                         Materialize.toast('Комментарий добавлен', 4000);
-                        $('#author').val("");
                         $('#comment').val("");
                         $('#comments').append('<div class="row"> <div class="col s12"> <div class="card" style="background-color: #0A122A;"> <div class="card-content white-text"> <span class="card-title">'
-                        + author + '</span> <p>'
+                        + contact_json + '</span> <p>'
                         + comment + '</p> </div><div class="card-action"> <a href="#"style="color: #00E9FF;">Response</a><a href="#"style="color: #00E9FF;">Like</a> </div> </div> </div> </div>');
 
                     },
@@ -80,9 +69,15 @@
                         article:$('#article_header').attr("article_id"),
                         csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
                     },
-                    success:function(contact_json) {
-                        var likes_count = 1 + parseInt($('likes').text())
-                        $('likes').text(likes_count)
+                    success:function(result) {
+                        if(result == "true"){
+                            var likes_count = 1 + parseInt($('likes').text())
+                            $('likes').text(likes_count)
+                        } else
+                        {
+                            var likes_count = parseInt($('likes').text()) - 1
+                            $('likes').text(likes_count)
+                        }
                     },
                     error: function () {
                         Materialize.toast('Ошибка', 4000);
@@ -106,7 +101,7 @@
     <div class="col s12">
       <div class="card" style="background-color: #0A122A;">
         <div class="card-content white-text">
-          <span class="card-title">{{comment.author}}</span>
+          <span class="card-title">{{comment.author.first_name|add:" "|add:comment.author.last_name }}</span>
           <p>{{comment.comment}}</p>
         </div>
         <div class="card-action">

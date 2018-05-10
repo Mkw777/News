@@ -3,6 +3,8 @@ from feed.models import News, Category, Source, Tag, Image, Comment, Like
 from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+
 
 def render_result(func):
     def renderer(*args, **kwargs):
@@ -135,18 +137,17 @@ def view_tag(request, pk):
     return request, "feed/main_page.html", values_dict
 
 
+@login_required
 def add_comment(request):
     if request.method == 'POST':
-        if 'author' not in request.POST:
-            return HttpResponse(status=400)
-
         if 'comment' not in request.POST:
             return HttpResponse(status=400)
 
         if 'article' not in request.POST:
             return HttpResponse(status=400)
 
-        author = request.POST['author']
+        user = request.user
+        author = user
         comment = request.POST['comment']
         article_pk = int(request.POST['article'])
 
@@ -156,22 +157,29 @@ def add_comment(request):
         comment_obj.article = News.objects.get(pk=article_pk)
         comment_obj.save()
 
-    return HttpResponse(status=200)
+    return HttpResponse(user.first_name + user.last_name ,status=200)
 
-
+@login_required
 def like(request):
     if request.method == 'POST':
         if 'article' not in request.POST:
             return HttpResponse(status=400)
 
         article_pk = int(request.POST['article'])
+        user = request.user
+        article = News.objects.get(pk=article_pk)
+        query = user.user_likes.filter(article=article)
+        if query.count() == 0:
+            like_obj = Like()
+            like_obj.article = article
+            like_obj.owner = user
+            like_obj.save()
+            return HttpResponse('true', status=200)
+        else:
+            query.get().delete()
+            return HttpResponse('false', status=200)
 
-        like_obj = Like()
-        like_obj.article = News.objects.get(pk=article_pk)
-        like_obj.owner = ""
-        like_obj.save()
 
-    return HttpResponse(status=200)
 
 
 def get_news(request):
